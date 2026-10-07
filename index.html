@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué plan te toca?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+    background-size: 300% 300%; animation: fondo 12s ease infinite; padding: 20px;
+  }
+  @keyframes fondo { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+  .tarjeta {
+    background: rgba(255,255,255,.95); width: 100%; max-width: 420px;
+    padding: 32px 28px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.25); text-align: center;
+  }
+  h1 { color: #4a3b8f; margin-bottom: 6px; font-size: 1.8rem; }
+  .sub { color: #888; margin-bottom: 18px; font-size: .95rem; }
+  label { display: block; text-align: left; font-weight: 600; color: #555; margin: 14px 0 6px; font-size: .9rem; }
+  input, select {
+    width: 100%; padding: 12px 14px; border: 2px solid #e0dcf5; border-radius: 12px;
+    font-size: 1rem; outline: none; background: #faf9ff; transition: border-color .2s, box-shadow .2s;
+  }
+  input:focus, select:focus { border-color: #764ba2; box-shadow: 0 0 0 4px rgba(118,75,162,.15); }
+
+  button {
+    width: 100%; margin-top: 20px; padding: 14px; border: none; border-radius: 12px;
+    font-size: 1.05rem; font-weight: 700; color: #fff; cursor: pointer;
+    background: linear-gradient(90deg, #667eea, #764ba2); transition: transform .15s, box-shadow .15s;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(118,75,162,.4); }
+  button.sec { background: #eee; color: #4a3b8f; margin-top: 12px; }
+  .error { color: #d9345a; font-size: .9rem; margin-top: 12px; min-height: 18px; }
+
+  .resultado-box { border-radius: 20px; padding: 24px 16px; color: #fff; animation: aparecer .6s ease; }
+  @keyframes aparecer { from { opacity: 0; transform: translateY(20px) scale(.95); } to { opacity: 1; transform: none; } }
+  .datos { font-size: 1.1rem; margin-bottom: 14px; line-height: 1.6; }
+  .datos b { font-size: 1.3rem; }
+  .imagenes { font-size: 4.5rem; margin: 10px 0; display: flex; justify-content: center; gap: 18px; }
+  .imagenes span { display: inline-block; animation: saltar 1.6s ease-in-out infinite; }
+  .imagenes span:nth-child(2) { animation-delay: .3s; }
+  @keyframes saltar { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  .mensaje { font-size: 1.05rem; font-weight: 600; }
+  .guardado { font-size: .85rem; margin-top: 10px; opacity: .9; }
+
+  .nino    { background: linear-gradient(135deg, #36d1dc, #5b86e5); }
+  .joven-h { background: linear-gradient(135deg, #232526, #6a11cb); }
+  .nina    { background: linear-gradient(135deg, #ff6fb5, #ff9ed2); }
+  .joven-m { background: linear-gradient(135deg, #56ab2f, #a8e063); }
+  .otro    { background: linear-gradient(135deg, #f7971e, #ffd200); color: #4a3b00; }
+
+  .lista { margin-top: 26px; text-align: left; }
+  .lista h3 { color: #4a3b8f; font-size: 1rem; margin-bottom: 10px; }
+  .usuario {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #f3f0ff; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; cursor: pointer;
+    transition: background .2s;
+  }
+  .usuario:hover { background: #e6e0ff; }
+  .usuario small { color: #777; display: block; }
+  .usuario .borrar { background: none; border: none; color: #d9345a; font-size: 1.2rem; width: auto; margin: 0; padding: 4px 8px; box-shadow: none; }
+  .usuario .borrar:hover { transform: scale(1.2); box-shadow: none; }
+  .vacio { color: #999; font-size: .9rem; }
+</style>
+</head>
+<body>
+
+<div class="tarjeta">
+  <h1>✨ ¿Qué plan te toca? ✨</h1>
+  <p class="sub" id="sub">Llena tus datos y descúbrelo</p>
+
+  <div id="formulario">
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre" placeholder="Escribe tu nombre">
+
+    <label for="edad">Edad</label>
+    <input type="number" id="edad" placeholder="Escribe tu edad" min="1" max="120">
+
+    <label for="sexo">Sexo</label>
+    <select id="sexo">
+      <option value="">Selecciona...</option>
+      <option value="hombre">Hombre</option>
+      <option value="mujer">Mujer</option>
+    </select>
+
+    <button onclick="guardar()">Guardar y ver resultado</button>
+    <div class="error" id="error"></div>
+  </div>
+
+  <div id="resultado" style="display:none; margin-top:10px;">
+    <div class="resultado-box" id="caja">
+      <div class="datos" id="datos"></div>
+      <div class="imagenes" id="imagenes"></div>
+      <div class="mensaje" id="mensaje"></div>
+      <div class="guardado">💾 Usuario guardado</div>
+    </div>
+    <button class="sec" onclick="nuevo()">➕ Registrar otro usuario</button>
+  </div>
+
+  <div class="lista">
+    <h3>👥 Usuarios guardados</h3>
+    <div id="lista"></div>
+  </div>
+</div>
+
+<script>
+const CLAVE = 'usuarios_plan';
+let memoria = [];   // respaldo por si el visor bloquea el almacenamiento
+
+function leer() {
+  try {
+    const d = localStorage.getItem(CLAVE);
+    return d ? JSON.parse(d) : [];
+  } catch (e) { return memoria; }
+}
+function escribir(arr) {
+  memoria = arr;
+  try { localStorage.setItem(CLAVE, JSON.stringify(arr)); } catch (e) {}
+}
+function esc(t) {
+  const d = document.createElement('div'); d.textContent = t; return d.innerHTML;
+}
+
+function categoria(edad, sexo) {
+  if (sexo === 'hombre' && edad < 18)  return { clase: 'nino',    imgs: ['👦','🎬'],  msg: '¡Te toca ir al cine! 🍿' };
+  if (sexo === 'hombre' && edad <= 30) return { clase: 'joven-h', imgs: ['🕺','🪩'],  msg: '¡Te toca ir al antro! 🎉' };
+  if (sexo === 'mujer'  && edad < 18)  return { clase: 'nina',    imgs: ['👧','🎀'],  msg: '¡Te toca jugar con tu muñeca rosa! 💖' };
+  if (sexo === 'mujer'  && edad <= 30) return { clase: 'joven-m', imgs: ['💆‍♀️','🧖‍♀️'], msg: '¡Te toca un día de spa! 🌿' };
+  return { clase: 'otro', imgs: ['🌟','🎈'], msg: '¡Disfruta tu día!' };
+}
+
+function mostrarUsuario(u) {
+  const c = categoria(u.edad, u.sexo);
+  document.getElementById('caja').className = 'resultado-box ' + c.clase;
+  document.getElementById('datos').innerHTML =
+    `👤 Nombre: <b>${esc(u.nombre)}</b><br>🎂 Edad: <b>${u.edad} años</b><br>⚧ Sexo: <b>${u.sexo === 'hombre' ? 'Hombre' : 'Mujer'}</b>`;
+  document.getElementById('imagenes').innerHTML = c.imgs.map(i => `<span>${i}</span>`).join('');
+  document.getElementById('mensaje').textContent = c.msg;
+  document.getElementById('formulario').style.display = 'none';
+  document.getElementById('resultado').style.display = 'block';
+  document.getElementById('sub').textContent = '¡Hola de nuevo, ' + u.nombre + '! 👋';
+  localStorage_ultimo(u.id);
+}
+
+function localStorage_ultimo(id) {
+  try { localStorage.setItem(CLAVE + '_ultimo', id); } catch (e) {}
+}
+
+function guardar() {
+  const nombre = document.getElementById('nombre').value.trim();
+  const edad   = parseInt(document.getElementById('edad').value);
+  const sexo   = document.getElementById('sexo').value;
+  const error  = document.getElementById('error');
+  error.textContent = '';
+
+  if (!nombre || isNaN(edad) || edad < 1 || !sexo) {
+    error.textContent = '⚠️ Por favor llena todos los campos.';
+    return;
+  }
+  const usuarios = leer();
+  const u = { id: Date.now().toString(), nombre, edad, sexo };
+  usuarios.push(u);
+  escribir(usuarios);
+  pintarLista();
+  mostrarUsuario(u);
+}
+
+function nuevo() {
+  document.getElementById('nombre').value = '';
+  document.getElementById('edad').value = '';
+  document.getElementById('sexo').value = '';
+  document.getElementById('formulario').style.display = 'block';
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('sub').textContent = 'Llena tus datos y descúbrelo';
+}
+
+function ver(id) {
+  const u = leer().find(x => x.id === id);
+  if (u) mostrarUsuario(u);
+}
+
+function borrar(id, ev) {
+  ev.stopPropagation();
+  escribir(leer().filter(x => x.id !== id));
+  pintarLista();
+}
+
+function pintarLista() {
+  const usuarios = leer();
+  const cont = document.getElementById('lista');
+  if (!usuarios.length) { cont.innerHTML = '<p class="vacio">Aún no hay usuarios guardados.</p>'; return; }
+  cont.innerHTML = usuarios.map(u => `
+    <div class="usuario" onclick="ver('${u.id}')">
+      <div><b>${esc(u.nombre)}</b><small>${u.edad} años · ${u.sexo === 'hombre' ? 'Hombre' : 'Mujer'}</small></div>
+      <button class="borrar" title="Borrar" onclick="borrar('${u.id}', event)">🗑️</button>
+    </div>`).join('');
+}
+
+// Al abrir la página: mostrar la lista y el último usuario guardado
+pintarLista();
+try {
+  const ultimo = localStorage.getItem(CLAVE + '_ultimo');
+  if (ultimo) ver(ultimo);
+} catch (e) {}
+</script>
+
+</body>
+</html>
